@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ENEMIGOS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Esta es la tabla que hace el get a la api -->
+    <h1>Lista de Enemigos</h1>
+    <table id="enemigosTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Partido</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="enemigosBody"></tbody>
+    </table>
+
+<!-- Formulario para insertar enemigos -->
+    <div class="formulario-container">
+        <h2>Agregar nuevo enemigo</h2>
+        <form id="formInsertarEnemigo">
+            <div class="form-group">
+                <label for="nombre">Name</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="partido">Partido</label>
+                <input type="text" id="partido" name="partido" required>
+            </div>
+            <button type="submit" id="btnSubmit">Agregar Enemigo</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
