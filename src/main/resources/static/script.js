@@ -1,14 +1,87 @@
 window.addEventListener('DOMContentLoaded', cargarEnemigos);
 
+let enemigosCargados = [];
+
 async function cargarEnemigos(){
     try{
         const response = await fetch('api/enemigo');
         const enemigos = await response.json();
+        enemigosCargados = enemigos;
         mostrarEnemigos(enemigos);
     }catch(error){
-        console.error("error al cargar los usuarios" + error)
+        console.error("error al cargar los usuarios" + error);
+        mostrarMensaje("Error al cargar los enemigos", "error");
     }//FIN CATCH
 }//FIN CARGAR ENEMIGOS
+
+async function buscarPorNombre(){
+    const nombre = document.getElementById('searchInput').value.trim();
+
+    if(!nombre){
+        mostrarMensaje("Por favor ingresa un nombre para buscar", "error");
+        return;
+    }
+
+    try{
+        const response = await fetch(`api/enemigo/buscar?nombre=${encodeURIComponent(nombre)}`);
+        const enemigos = await response.json();
+
+        if(enemigos.length === 0){
+            mostrarMensaje(`No se encontraron enemigos con el nombre "${nombre}"`, "warning");
+        } else {
+            mostrarMensaje(`Se encontraron ${enemigos.length} resultado(s)`, "success");
+        }
+
+        enemigosCargados = enemigos;
+        mostrarEnemigos(enemigos);
+    }catch(error){
+        console.error("Error al buscar:", error);
+        mostrarMensaje("Error al realizar la búsqueda", "error");
+    }
+}
+
+function ordenarAlfabeticamente(){
+    const enemigosOrdenados = [...enemigosCargados].sort((a, b) => {
+        return a.name.localeCompare(b.name);
+    });
+    mostrarEnemigos(enemigosOrdenados);
+    mostrarMensaje("Lista ordenada alfabéticamente", "success");
+}
+
+async function descargarCSV(){
+    try{
+        const response = await fetch('api/enemigo/csv');
+
+        if(response.ok){
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'enemigos.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            mostrarMensaje("CSV descargado exitosamente", "success");
+        } else {
+            mostrarMensaje("Error al descargar el CSV", "error");
+        }
+    }catch(error){
+        console.error("Error al descargar CSV:", error);
+        mostrarMensaje("Error al descargar el CSV", "error");
+    }
+}
+
+function mostrarMensaje(texto, tipo){
+    const mensajeDiv = document.getElementById('mensaje');
+    mensajeDiv.textContent = texto;
+    mensajeDiv.className = `mensaje ${tipo}`;
+    mensajeDiv.style.display = 'block';
+
+    setTimeout(() => {
+        mensajeDiv.style.display = 'none';
+    }, 4000);
+}
 
 function mostrarEnemigos(enemigos){
     const tbody = document.getElementById('enemigosBody');
@@ -42,6 +115,11 @@ document.getElementById('formInsertarEnemigo').addEventListener('submit', async 
     const partido = document.getElementById('partido').value;
     const btnSubmit = document.getElementById('btnSubmit');
 
+    // Validación del lado del cliente
+    if(name.length < 3){
+        mostrarMensaje("El nombre debe tener al menos 3 caracteres", "error");
+        return;
+    }
 
     // Mientras se procesa
     btnSubmit.disabled = true;
@@ -62,13 +140,22 @@ document.getElementById('formInsertarEnemigo').addEventListener('submit', async 
             const enemigos = await response.json();
             document.getElementById('formInsertarEnemigo').reset();
             await cargarEnemigos(); //Cargar enemigos
+            mostrarMensaje("Enemigo agregado exitosamente", "success");
 
         }else{
-            const error = await response.text();
-            console.log(error);
+            const errorData = await response.json();
+            let errorMsg = errorData.error || "Error al crear el enemigo";
+
+            if(errorData.name){
+                errorMsg = errorData.name;
+            }
+
+            mostrarMensaje(errorMsg, "error");
+            console.log(errorData);
         }
     }catch(error){
         console.error(error);
+        mostrarMensaje("Error de conexión con el servidor", "error");
     }finally{
         btnSubmit.disabled = false;
         btnSubmit.textContent = 'Agregar Enemigo';
@@ -120,6 +207,12 @@ function editarEnemigo(id, name, partido){
         const nameNuevo = document.getElementById('nombre').value;
         const partidoNuevo = document.getElementById('partido').value;
 
+        // Validación del lado del cliente
+        if(nameNuevo.length < 3){
+            mostrarMensaje("El nombre debe tener al menos 3 caracteres", "error");
+            return;
+        }
+
         btnSubmit.disabled = true;
         btnSubmit.textContent = 'Actualizando...';
 
@@ -140,17 +233,26 @@ function editarEnemigo(id, name, partido){
                 console.log('Enemigo actualizado correctamente');
                 form.reset();
                 btnSubmit.textContent = 'Agregar Enemigo';
+                mostrarMensaje("Enemigo actualizado exitosamente", "success");
 
                 // Restaurar el formulario para agregar
-                location.reload();
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
             }else{
-                const error = await response.text();
-                console.error('Error:', error);
-                alert('Error al actualizar el enemigo');
+                const errorData = await response.json();
+                let errorMsg = errorData.error || "Error al actualizar el enemigo";
+
+                if(errorData.name){
+                    errorMsg = errorData.name;
+                }
+
+                mostrarMensaje(errorMsg, "error");
+                console.error('Error:', errorData);
             }
         }catch(error){
             console.error('Error:', error);
-            alert('Error al actualizar el enemigo');
+            mostrarMensaje("Error de conexión con el servidor", "error");
         }finally{
             btnSubmit.disabled = false;
         }

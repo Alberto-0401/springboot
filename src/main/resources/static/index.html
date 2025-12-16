@@ -10,6 +10,23 @@
 
 <!-- Esta es la tabla que hace el get a la api -->
     <h1>Lista de Enemigos</h1>
+
+    <!-- Barra de herramientas -->
+    <div class="toolbar">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Buscar por nombre...">
+            <button onclick="buscarPorNombre()">Buscar</button>
+            <button onclick="cargarEnemigos()">Mostrar Todos</button>
+        </div>
+        <div class="action-buttons">
+            <button onclick="ordenarAlfabeticamente()">Ordenar A-Z</button>
+            <button onclick="descargarCSV()">Descargar CSV</button>
+        </div>
+    </div>
+
+    <!-- Mensaje de error/éxito -->
+    <div id="mensaje" class="mensaje" style="display: none;"></div>
+
     <table id="enemigosTable">
         <thead>
             <tr>
@@ -28,7 +45,8 @@
         <form id="formInsertarEnemigo">
             <div class="form-group">
                 <label for="nombre">Name</label>
-                <input type="text" id="nombre" name="nombre" required>
+                <input type="text" id="nombre" name="nombre" required minlength="3">
+                <span class="error-message" id="nombreError"></span>
             </div>
             <div class="form-group">
                 <label for="partido">Partido</label>
